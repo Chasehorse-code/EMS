@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+target/
+**/target/
+*.tsbuildinfo
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+**/.*env
+!.env.example
+!.env.production.example
+!**/.env.example
+!**/.env.production.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+hs_err_pid*
+replay_pid*
+
+# Expo (mobile)
+.expo/
+**/.expo/
+
+# Documents (large binary files)
+*.docx
+*.pdf
+blueprint_extracted.txt
+
+# Claude/AI
+.claude/

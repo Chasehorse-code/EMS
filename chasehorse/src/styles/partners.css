@@ -1,0 +1,336 @@
+/* ==========================================================================
+   CHASEHORSE PARTNERS & ENTERPRISE TRACKING STYLES
+   Paper & Carbon aesthetic with 20px radius cards, black pill buttons,
+   and signature burnt orange accents.
+   ========================================================================== */
+
+/* Main layout wrapper */
+.ch-partners-page {
+  min-height: 100vh;
+  background-color: var(--ch-bg, #F3F1EB);
+  color: var(--ch-ink, #151515);
+  font-family: var(--ch-font-sans, 'Inter', sans-serif);
+  padding-bottom: 5rem;
+}
+
+.ch-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Header Section */
+.ch-partners-hero {
+  padding: 4rem 0 2.5rem 0;
+  text-align: center;
+}
+
+.ch-mono-badge {
+  display: inline-block;
+  font-family: var(--ch-font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--ch-radius-pill, 9999px);
+  background: var(--ch-surface-2, #EFECE4);
+  color: var(--ch-muted, #5E5B53);
+  margin-bottom: 1rem;
+  border: 1px solid var(--ch-border, #DDD8CC);
+}
+
+.ch-partners-title {
+  font-family: var(--ch-font-heading, 'Plus Jakarta Sans', sans-serif);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ch-ink, #151515);
+  margin: 0 0 0.75rem 0;
+}
+
+.ch-partners-subtext {
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  color: var(--ch-muted, #5E5B53);
+  max-width: 650px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+/* 3 Core Category Cards Grid */
+.ch-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+/* Signature 20px Rounded Card */
+.ch-card {
+  background: var(--ch-surface, #FFFFFF);
+  border: 1px solid var(--ch-border, #DDD8CC);
+  border-radius: var(--ch-radius-card, 20px);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(21, 21, 21, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ch-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(21, 21, 21, 0.08);
+  border-color: var(--ch-border-strong, #C5BFB0);
+}
+
+.ch-card-header {
+  margin-bottom: 1.25rem;
+}
+
+.ch-card-category {
+  font-family: var(--ch-font-mono, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ch-orange, #D9531E);
+  margin-bottom: 0.5rem;
+}
+
+.ch-card-title {
+  font-family: var(--ch-font-heading, sans-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ch-ink, #151515);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.ch-card-description {
+  color: var(--ch-muted, #5E5B53);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+}
+
+/* Sub-links inside Category Card */
+.ch-partner-sublinks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ch-partner-link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: var(--ch-bg, #F3F1EB);
+  color: var(--ch-ink, #151515);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.ch-partner-link-item:hover {
+  background: #ffffff;
+  border-color: var(--ch-orange, #D9531E);
+  color: var(--ch-orange, #D9531E);
+  transform: translateX(3px);
+}
+
+/* Black Pill Buttons */
+.ch-btn-pill-black {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--ch-radius-pill, 9999px);
+  background: var(--ch-ink, #151515);
+  color: #ffffff !important;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ch-btn-pill-black:hover {
+  background: #2a2a2a;
+  transform: translateY(-1px);
+}
+
+/* Orange Primary CTA Buttons */
+.ch-btn-orange {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: var(--ch-radius-pill, 9999px);
+  background: var(--ch-orange, #D9531E);
+  color: #ffffff !important;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(217, 83, 30, 0.25);
+}
+
+.ch-btn-orange:hover {
+  background: var(--ch-orange-hover, #C24513);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(217, 83, 30, 0.35);
+}
+
+/* Bottom Action Cards (Application Form + WhatsApp) */
+.ch-action-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ch-action-card {
+  background: var(--ch-surface, #FFFFFF);
+  border: 1px solid var(--ch-border, #DDD8CC);
+  border-radius: var(--ch-radius-card, 20px);
+  padding: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ch-action-info h4 {
+  font-family: var(--ch-font-heading, sans-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem 0;
+  color: var(--ch-ink, #151515);
+}
+
+.ch-action-info p {
+  color: var(--ch-muted, #5E5B53);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+/* Form Styles */
+.ch-form-container {
+  max-width: 680px;
+  margin: 2rem auto;
+  background: var(--ch-surface, #FFFFFF);
+  border: 1px solid var(--ch-border, #DDD8CC);
+  border-radius: var(--ch-radius-card, 20px);
+  padding: 2.5rem;
+  box-shadow: 0 4px 16px rgba(21, 21, 21, 0.05);
+}
+
+.ch-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.ch-form-label {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ch-ink, #151515);
+  margin-bottom: 0.4rem;
+}
+
+.ch-required-star {
+  color: var(--ch-orange, #D9531E);
+  margin-left: 3px;
+}
+
+.ch-input,
+.ch-select,
+.ch-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--ch-border, #DDD8CC);
+  background: #ffffff;
+  color: var(--ch-ink, #151515);
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ch-input:focus,
+.ch-select:focus,
+.ch-textarea:focus {
+  outline: none;
+  border-color: var(--ch-orange, #D9531E);
+  box-shadow: 0 0 0 3px rgba(217, 83, 30, 0.12);
+}
+
+.ch-input-masked-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ch-input-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--ch-muted, #5E5B53);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.ch-field-error {
+  color: #B04A3A;
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ch-honeypot {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  pointer-events: none;
+}
+
+/* Success Confirmation Screen */
+.ch-success-card {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.ch-ref-id-badge {
+  display: inline-block;
+  font-family: var(--ch-font-mono, monospace);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: var(--ch-surface-2, #EFECE4);
+  color: var(--ch-ink, #151515);
+  border: 1px dashed var(--ch-border-strong, #C5BFB0);
+  margin: 1rem 0;
+}
+

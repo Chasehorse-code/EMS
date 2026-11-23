@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "isolatedModules": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@chasehorse/design-tokens": ["../../packages/design-tokens/src/index.ts"],
+      "@chasehorse/domain": ["../../packages/domain/src/index.ts"],
+      "@chasehorse/api-client": ["../../packages/api-client/src/index.ts"],
+      "@chasehorse/design-tokens/native": ["../../packages/design-tokens/src/native.ts"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "App.tsx"
+  ],
+  "extends": "expo/tsconfig.base"
+}

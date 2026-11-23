@@ -1,0 +1,13 @@
+:root {
+  --ch-canvas: #F3F1EB;
+  --ch-ink: #151515;
+  --ch-accent: #D9531E;
+  --ch-success: #2F7D5B;
+  --ch-warning: #B7791F;
+  --ch-danger: #B04A3A;
+  --ch-info: #3A5BA0;
+  --ch-space-md: 12px;
+  --ch-space-lg: 16px;
+  --ch-radius-card: 16px;
+  --ch-motion-normal: 220ms;
+}

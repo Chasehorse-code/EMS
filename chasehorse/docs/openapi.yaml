@@ -1,0 +1,1050 @@
+openapi: 3.0.3
+info:
+  title: ChaseHorse EMS API
+  version: 0.1.0
+  description: >
+    Complete REST API specification for ChaseHorse Enterprise Logistics &
+    Field Workforce Orchestration platform. Enforces server-authoritative role
+    authorization, row-level data scoping, and state machine validation.
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Spring Boot Development Server
+  - url: /api/v1
+    description: Relative Path (Production / Reverse Proxy)
+
+paths:
+  /health:
+    get:
+      summary: Health probe
+      description: Returns service health status and timestamp.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: chasehorse-erp-api
+
+  /me:
+    get:
+      summary: Current authenticated identity
+      description: Returns authenticated actor profile, verified account status, and assigned database roles.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserView'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tasks:
+    get:
+      summary: List tasks
+      description: Scoped by caller role. Customers see own tasks; field workers see OPEN and assigned tasks; managers see assigned state tasks.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskView'
+    post:
+      summary: Create a field task
+      description: Authorized for CUSTOMER, ADMIN, MANAGER, OPERATIONS.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '200':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskView'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /tasks/{id}:
+    get:
+      summary: Get task details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{id}/accept:
+    post:
+      summary: Accept an open task
+      description: Atomic acceptance with conflict detection. Returns 409 if already claimed.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskView'
+        '409':
+          description: Task already accepted by another worker
+
+  /tasks/{id}/status:
+    patch:
+      summary: Update task lifecycle status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [OPEN, ASSIGNED, IN_PROGRESS, SUBMITTED, IN_REVIEW, APPROVED, REJECTED, CANCELLED]
+      responses:
+        '200':
+          description: Task status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskView'
+
+  /evidence:
+    get:
+      summary: List evidence submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Evidence records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvidenceView'
+    post:
+      summary: Submit photo evidence
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitEvidenceRequest'
+      responses:
+        '200':
+          description: Evidence recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceView'
+
+  /evidence/{id}/manager-decision:
+    post:
+      summary: Record reviewer decision on evidence
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [APPROVED, REJECTED, REWORK]
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Decision recorded
+
+  /approvals:
+    get:
+      summary: List approval review queue
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Queue items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApprovalQueueItem'
+
+  /approvals/{id}/decision:
+    post:
+      summary: Approve, reject, or request rework on task bounty
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - decision
+              properties:
+                decision:
+                  type: string
+                  enum: [APPROVED, REJECTED, REWORK_REQUESTED]
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Decision finalized
+
+  /wallets/me:
+    get:
+      summary: Current worker wallet balance
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Wallet summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSummary'
+
+  /wallets/{employeeId}/transactions:
+    get:
+      summary: Wallet transaction ledger
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ledger transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WalletTransactionView'
+
+  /employees:
+    get:
+      summary: List employees / workers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Employee directory
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeView'
+
+  /employees/{id}/approval:
+    patch:
+      summary: Set employee account status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, SUSPENDED, REJECTED, PENDING]
+                role:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeView'
+
+  /areas/my-area:
+    get:
+      summary: Get assigned manager operational area
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Operational area
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stateCode:
+                    type: string
+                  stateName:
+                    type: string
+                  isAssigned:
+                    type: boolean
+
+  /areas/coverage:
+    get:
+      summary: Area coverage metrics across Indian states
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: State coverage list
+
+  /admin/managers:
+    get:
+      summary: List managers with area assignments
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Manager assignments
+
+  /admin/managers/{managerId}/area:
+    put:
+      summary: Assign operational state area to manager
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - stateCode
+              properties:
+                stateCode:
+                  type: string
+      responses:
+        '200':
+          description: Assignment updated
+
+  /notifications:
+    get:
+      summary: List user notifications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationView'
+
+  /notifications/unread-count:
+    get:
+      summary: Unread notification count
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount:
+                    type: integer
+
+  /notifications/mark-all-read:
+    post:
+      summary: Mark all notifications as read
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Updated count
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark one notification as read
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked read
+
+  /tickets:
+    get:
+      summary: List support tickets
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Ticket list
+    post:
+      summary: Create support ticket
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+      responses:
+        '200':
+          description: Ticket created
+
+  /tickets/{id}/comments:
+    post:
+      summary: Add comment or reply to ticket
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                isInternal:
+                  type: boolean
+                attachments:
+                  type: string
+      responses:
+        '200':
+          description: Comment created
+
+  /tasks/{taskId}/feedback:
+    get:
+      summary: Get task feedback & ratings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Feedback view
+    post:
+      summary: Submit customer feedback for completed task
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeedbackRequest'
+      responses:
+        '200':
+          description: Feedback submitted
+
+  /dashboard/stats:
+    get:
+      summary: High level dashboard statistics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard metrics
+
+  /tms/plans:
+    get:
+      summary: Fleet transport plans & rate cards
+      responses:
+        '200':
+          description: Transport plans
+
+  /tms/tracking/{bookingRef}:
+    get:
+      summary: Public shipment tracking
+      parameters:
+        - name: bookingRef
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Shipment tracking milestones
+
+  /tms/shipments:
+    post:
+      summary: Create a shipment from a selected transport plan
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [originAddress, destinationAddress]
+              properties:
+                originAddress: { type: string }
+                destinationAddress: { type: string }
+                cargoDescription: { type: string }
+                cargoWeightKg: { type: number }
+                transportPlanId: { type: string, format: uuid }
+      responses:
+        '200': { description: Shipment created }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /employees/me/profile:
+    get:
+      summary: Current worker profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Worker profile }
+    patch:
+      summary: Update current worker profile and location consent
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Updated worker profile }
+
+  /employees/me/location:
+    put:
+      summary: Update the current worker's measured location
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number }
+                lng: { type: number }
+                accuracy: { type: number }
+      responses:
+        '200': { description: Location updated }
+    delete:
+      summary: Withdraw location consent and erase stored coordinates
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Location cleared }
+
+  /employees/{employeeId}/portfolio:
+    get:
+      summary: Worker portfolio and customer feedback
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Worker portfolio }
+
+  /employees/{employeeId}/feedback:
+    get:
+      summary: Feedback visible to a worker, authorized customer, or staff
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Employee feedback }
+
+  /checklist-templates:
+    get:
+      summary: List checklist templates
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Checklist templates }
+    post:
+      summary: Create a checklist template
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Checklist template created }
+
+  /checklist-templates/{id}:
+    get:
+      summary: Retrieve a checklist template
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Checklist template }
+    put:
+      summary: Update a checklist template
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Checklist template updated }
+
+  /wallets/{employeeId}:
+    get:
+      summary: Worker wallet balance and pending amount
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Wallet account }
+
+  /areas/states:
+    get:
+      summary: Available operational states
+      responses:
+        '200': { description: State codes and names }
+
+  /profiles/me:
+    put:
+      summary: Update the authenticated user's profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { description: Profile updated }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CurrentUserView:
+      type: object
+      required:
+        - id
+        - email
+        - accountStatus
+        - roles
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        accountStatus:
+          type: string
+          enum: [ACTIVE, PENDING, SUSPENDED, REJECTED]
+        roles:
+          type: array
+          items:
+            type: string
+
+    TaskView:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - priority
+        - rewardAmount
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        customerId:
+          type: string
+          format: uuid
+        assignedTo:
+          type: string
+          format: uuid
+        areaKey:
+          type: string
+        address:
+          type: string
+        locationLat:
+          type: number
+        locationLng:
+          type: number
+        rewardAmount:
+          type: number
+        dueAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+        - category
+        - priority
+        - areaKey
+        - address
+        - rewardAmount
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+        checklistTemplateId:
+          type: string
+          format: uuid
+        areaKey:
+          type: string
+        address:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+        rewardAmount:
+          type: number
+
+    SubmitEvidenceRequest:
+      type: object
+      required:
+        - taskId
+        - storagePath
+        - contentType
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        storagePath:
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        fileSizeBytes:
+          type: integer
+        caption:
+          type: string
+        locationLat:
+          type: number
+        locationLng:
+          type: number
+
+    EvidenceView:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        submittedBy:
+          type: string
+          format: uuid
+        photos:
+          type: array
+          items:
+            type: object
+        ai:
+          type: object
+        managerDecision:
+          type: object
+
+    ApprovalQueueItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        rewardAmount:
+          type: number
+        stage:
+          type: string
+
+    WalletSummary:
+      type: object
+      required:
+        - employeeId
+        - balanceInr
+        - pendingInr
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        balanceInr:
+          type: number
+        pendingInr:
+          type: number
+
+    WalletTransactionView:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        entryType:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    EmployeeView:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        region:
+          type: string
+        stateCode:
+          type: string
+        stateName:
+          type: string
+        accountStatus:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+
+    NotificationView:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateTicketRequest:
+      type: object
+      required:
+        - subject
+        - message
+      properties:
+        subject:
+          type: string
+        category:
+          type: string
+        urgency:
+          type: string
+        message:
+          type: string
+        relatedTaskId:
+          type: string
+          format: uuid
+        region:
+          type: string
+        attachments:
+          type: string
+
+    CreateFeedbackRequest:
+      type: object
+      required:
+        - overallRating
+      properties:
+        overallRating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        qualityRating:
+          type: integer
+        punctualityRating:
+          type: integer
+        communicationRating:
+          type: integer
+        evidenceClarityRating:
+          type: integer
+        comment:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid Supabase Bearer token
+    Forbidden:
+      description: Principal lacks required role or data access privilege
+    NotFound:
+      description: Requested entity does not exist
+    BadRequest:
+      description: Invalid request parameters or body validation error

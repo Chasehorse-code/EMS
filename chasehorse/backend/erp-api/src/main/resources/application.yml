@@ -1,0 +1,79 @@
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+spring:
+  application:
+    name: chasehorse-erp-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:chasehorse;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:none}
+    open-in-view: false
+  sql:
+    init:
+      mode: embedded
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: true
+    baseline-version: "0"
+    locations: classpath:db/migration
+  # Zoho Mail SMTP for transactional e-mail (task / ticket notifications).
+  # Use a Zoho *app password* for MAIL_USERNAME, never the account password.
+  # India data centre accounts use smtp.zoho.in; .com accounts use smtp.zoho.com.
+  mail:
+    host: ${MAIL_HOST:smtp.zoho.in}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 15000
+      mail.smtp.writetimeout: 15000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SUPABASE_JWT_ISSUER:https://phxybimufcrsnxfepiuz.supabase.co/auth/v1}
+chasehorse:
+  mail:
+    # Sending stays off until SMTP credentials are configured; notifications still queue in email_outbox.
+    enabled: ${MAIL_ENABLED:false}
+    from-address: ${MAIL_FROM:tech.support@chasehorse.com}
+    from-name: ${MAIL_FROM_NAME:ChaseHorse Support}
+    admin-cc: ${MAIL_ADMIN_CC:ems.admin@chasehorse.com}
+    # Public URL of the web app, used for links inside e-mails.
+    app-url: ${APP_PUBLIC_URL:http://localhost:5173}
+  enquiries:
+    # Receives an alert e-mail (from tech.support@) for every new website enquiry.
+    alert-to: ${ENQUIRY_ALERT_TO:shravan.vibhas@chasehorse.com}
+    # Signs e-mail verification tokens and hashes one-time codes. Set a long random value in
+    # production (e.g. `openssl rand -base64 48`); if blank a random one is generated per start.
+    otp-secret: ${ENQUIRY_OTP_SECRET:}
+    # Mailbox that sends the one-time codes (same SMTP host/port as spring.mail).
+    noreply-address: ${NOREPLY_MAIL_USERNAME:noreply@chasehorse.com}
+    noreply-name: ${NOREPLY_MAIL_FROM_NAME:ChaseHorse}
+    noreply-password: ${NOREPLY_MAIL_PASSWORD:}
+    # Local development only: print one-time codes to the API log when SMTP isn't configured.
+    log-codes-for-development: ${ENQUIRY_LOG_CODES_FOR_DEVELOPMENT:false}
+  tasks:
+    # Field workers only see / accept open tasks within this distance of their location or zone.
+    worker-radius-km: ${WORKER_TASK_RADIUS_KM:100}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
