@@ -4,7 +4,7 @@ import { MAIN_NAVIGATION } from '../../data/navigation';
 import { NAV_DROPDOWNS, type NavCard, type NavCardLink, type NavSideGroup } from '../../data/navCards';
 import { ChaseHorseLogo } from '../ui/ChaseHorseLogo';
 import { useCart } from '../../hooks/useCart';
-import { Search, ShoppingBag, Menu, X, ChevronDown, ArrowRight } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, ChevronDown, ArrowRight, MessageSquare } from 'lucide-react';
 
 // Navbar items shown in the header, in order
 const NAV_IDS = ['platform', 'solutions', 'live-market', 'discover', 'hse-shop', 'partners'];
@@ -228,21 +228,59 @@ export const SiteHeader: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSear
           <div
             id="site-nav-dropdown"
             onMouseEnter={cancelClose}
-            className="hidden lg:block absolute z-20 left-0 right-0 top-full bg-white shadow-[0_24px_40px_-24px_rgba(0,0,0,0.25)]"
+            className="hidden lg:block absolute z-20 left-0 right-0 top-full bg-white shadow-[0_24px_40px_-24px_rgba(0,0,0,0.25)] border-b border-[#E5E5E5]"
           >
-            {/* Tesla-style: text tiles on the left, a plain link column on the right */}
-            <div className="mx-auto max-w-[1400px] px-8 pt-5 pb-7 flex justify-center items-start gap-10">
-              <div
-                className="grid gap-x-2 gap-y-2"
-                style={{ gridTemplateColumns: `repeat(${tileColumns(cards.length)}, minmax(0, ${cards.length > 4 ? 182 : 300}px))` }}
-              >
-                {cards.map((card) => (
-                  <MenuTile key={card.path + card.title} card={card} onNavigate={closeAll} />
-                ))}
+            {/* Tesla-style: text tiles on the left, a plain link column on the right (if present) */}
+            <div className="mx-auto max-w-[1400px] px-8 pt-5 pb-7 flex flex-col items-center">
+              <div className="flex justify-center items-start gap-10 w-full">
+                <div
+                  className="grid gap-x-2 gap-y-2"
+                  style={{ gridTemplateColumns: `repeat(${tileColumns(cards.length)}, minmax(0, ${cards.length > 4 ? 182 : 300}px))` }}
+                >
+                  {cards.map((card) => (
+                    <MenuTile key={card.path + card.title} card={card} onNavigate={closeAll} />
+                  ))}
+                </div>
+                {dropdown?.side && (
+                  <div className="self-stretch border-l border-[#E5E5E5] pl-12 pt-1 min-w-[200px]">
+                    <SideLinks groups={dropdown.side} onNavigate={closeAll} />
+                  </div>
+                )}
               </div>
-              {dropdown?.side && (
-                <div className="self-stretch border-l border-[#E5E5E5] pl-12 pt-1 min-w-[200px]">
-                  <SideLinks groups={dropdown.side} onNavigate={closeAll} />
+
+              {/* Optional footer actions (e.g. Join Partner WhatsApp Desk, Contact Us) */}
+              {dropdown?.footerActions && dropdown.footerActions.length > 0 && (
+                <div className="mt-5 pt-4 border-t border-[#EAE6DD] flex items-center justify-center gap-3 w-full">
+                  {dropdown.footerActions.map((action) => {
+                    const isWa = action.variant === 'whatsapp';
+                    const isExt = action.path.startsWith('http');
+                    const btnClass = isWa
+                      ? 'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#25D366] hover:bg-[#1EBE5D] transition-all shadow-sm'
+                      : 'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-[#171717] bg-[#FAF8F5] hover:bg-white border border-[#E2DED5] hover:border-[#171717] transition-all';
+                    return isExt ? (
+                      <a
+                        key={action.title}
+                        href={action.path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={closeAll}
+                        className={btnClass}
+                      >
+                        {isWa && <MessageSquare className="w-3.5 h-3.5" />}
+                        <span>{action.title}</span>
+                      </a>
+                    ) : (
+                      <Link
+                        key={action.title}
+                        to={action.path}
+                        onClick={closeAll}
+                        className={btnClass}
+                      >
+                        <span>{action.title}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -288,6 +326,40 @@ export const SiteHeader: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSear
                       {NAV_DROPDOWNS[item.id]?.side && (
                         <div className="px-2 pt-3 border-t border-[#EEEEEE]">
                           <SideLinks groups={NAV_DROPDOWNS[item.id].side!} onNavigate={closeAll} />
+                        </div>
+                      )}
+                      {NAV_DROPDOWNS[item.id]?.footerActions && (
+                        <div className="flex flex-wrap gap-2 pt-3 border-t border-[#EEEEEE]">
+                          {NAV_DROPDOWNS[item.id].footerActions!.map((action) => {
+                            const isWa = action.variant === 'whatsapp';
+                            const isExt = action.path.startsWith('http');
+                            const btnClass = isWa
+                              ? 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#25D366]'
+                              : 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#171717] bg-[#FAF8F5] border border-[#E2DED5]';
+                            return isExt ? (
+                              <a
+                                key={action.title}
+                                href={action.path}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={closeAll}
+                                className={btnClass}
+                              >
+                                {isWa && <MessageSquare className="w-3.5 h-3.5" />}
+                                <span>{action.title}</span>
+                              </a>
+                            ) : (
+                              <Link
+                                key={action.title}
+                                to={action.path}
+                                onClick={closeAll}
+                                className={btnClass}
+                              >
+                                <span>{action.title}</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </Link>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

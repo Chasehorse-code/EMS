@@ -50,10 +50,16 @@ export const PartnersTopicPage: React.FC<{ topic: PartnersTopic }> = ({ topic })
             href="https://wa.me/917337369111?text=Hi%20Chasehorse%2C%20I%20want%20to%20join%20the%20Partner%20Network"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-5 py-3.5 bg-white/10 hover:bg-white text-white hover:text-[#171717] border border-white/20 font-bold rounded-xl transition-all text-sm inline-flex items-center gap-2"
+            className="px-5 py-3.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#1EBE5D] transition-all text-sm inline-flex items-center gap-2 shadow-sm"
           >
             <MessageSquare className="w-4 h-4" /> Join Partner WhatsApp Desk
           </a>
+          <Link
+            to="/contact"
+            className="px-5 py-3.5 bg-white/10 hover:bg-white text-white hover:text-[#171717] border border-white/20 font-bold rounded-xl transition-all text-sm inline-flex items-center gap-2"
+          >
+            Contact Us <ArrowRight className="w-4 h-4" />
+          </Link>
         </>
       }
     >

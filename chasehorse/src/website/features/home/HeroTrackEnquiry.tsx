@@ -16,8 +16,11 @@ import {
   Mail,
   MessageCircle,
   Loader2,
+  ArrowRight,
+  ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MOCK_DASHBOARD_DATA } from '../../data/dashboard';
 import { APP_CONFIG } from '../../lib/config';
 import { VerifiedEmailField } from '../../components/enquiries/VerifiedEmailField';
@@ -30,6 +33,7 @@ import {
 } from '../../services';
 
 type Tab = 'live' | 'track';
+type LiveStage = 'services' | 'form';
 
 /** The five headline categories shown in the widget. The full 17-service catalogue stays on the main site. */
 const LIVE_SERVICES: { id: string; label: string; icon: LucideIcon }[] = [
@@ -40,19 +44,18 @@ const LIVE_SERVICES: { id: string; label: string; icon: LucideIcon }[] = [
   { id: 'digital', label: 'Digital Transformation & Automation', icon: Cpu },
 ];
 
-const EMPTY_FORM = { name: '', phone: '', email: '', company: '', service: '', message: '' };
+const EMPTY_FORM = { name: '', phone: '', email: '', company: '', message: '' };
 type FormState = typeof EMPTY_FORM;
-type Errors = Partial<Record<keyof FormState, string>>;
+type Errors = Partial<Record<keyof FormState | 'service', string>>;
 
-
-function validate(f: FormState): Errors {
+function validate(f: FormState, services: string[]): Errors {
   const e: Errors = {};
   if (!f.name.trim()) e.name = 'Enter your full name.';
   const digits = f.phone.replace(/\D/g, '');
   if (digits.length < 10 || digits.length > 13) e.phone = 'Enter a valid mobile number.';
   // E-mail is checked (and verified by code) in <VerifiedEmailField />.
   if (!f.company.trim()) e.company = 'Enter your company name.';
-  if (!f.service) e.service = 'Choose a service.';
+  if (services.length === 0) e.service = 'Choose at least one service.';
   return e;
 }
 
@@ -82,7 +85,7 @@ function demoOrderAsRecord(query: string): ServiceRequestRecord | null {
   };
 }
 
-function buildMessage(r: { referenceId: string } & FormState) {
+function buildMessage(r: { referenceId: string; service: string } & FormState) {
   return [
     `New service request: ${r.referenceId}`,
     '',
@@ -90,16 +93,19 @@ function buildMessage(r: { referenceId: string } & FormState) {
     `Mobile: ${r.phone}`,
     `Email: ${r.email}`,
     `Company: ${r.company}`,
-    `Service: ${r.service}`,
+    `Services: ${r.service}`,
     ...(r.message.trim() ? ['', `Requirement: ${r.message.trim()}`] : []),
   ].join('\n');
 }
 
-/** Hero right-hand card: raise a live service request, or track an existing one. */
+/** Hero right-hand card: select services, raise a live service request, or track an existing one. */
 export const HeroTrackEnquiry: React.FC = () => {
   const [tab, setTab] = useState<Tab>('live');
+  const [stage, setStage] = useState<LiveStage>('services');
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [serviceError, setServiceError] = useState<string>('');
 
-  // ---- Live ----
+  // ---- Live Form ----
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -112,15 +118,36 @@ export const HeroTrackEnquiry: React.FC = () => {
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
+  const toggleService = (label: string) => {
+    setSelectedServices((prev) => {
+      const exists = prev.includes(label);
+      const next = exists ? prev.filter((s) => s !== label) : [...prev, label];
+      return next;
+    });
+    if (serviceError) setServiceError('');
+    if (errors.service) setErrors((e) => ({ ...e, service: undefined }));
+  };
+
+  const handleGetItDone = () => {
+    if (selectedServices.length === 0) {
+      setServiceError('Please select at least one service to continue.');
+      return;
+    }
+    setServiceError('');
+    setStage('form');
+  };
+
   const submitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate(form);
+    const errs = validate(form, selectedServices);
     setErrors(errs);
     if (Object.keys(errs).length) {
       const first = Object.keys(errs)[0];
       document.getElementById(`live-${first}`)?.focus();
       return;
     }
+
+    const servicesText = selectedServices.join(', ');
 
     // Stored in the Enquiry Management System (team alerted, visitor e-mailed a copy).
     setSubmitting(true);
@@ -130,12 +157,16 @@ export const HeroTrackEnquiry: React.FC = () => {
       phone: form.phone.trim(),
       company: form.company.trim(),
       message: form.message.trim() || undefined,
-      details: { Service: form.service },
+      details: {
+        Services: servicesText,
+        Count: String(selectedServices.length),
+      },
     });
     if (!receipt) {
       setSubmitting(false);
       return;
     }
+
     // Also kept in this browser under the same reference so "Track" keeps working here.
     const res = await enquiryService.createServiceRequest({
       referenceId: receipt.reference,
@@ -143,7 +174,7 @@ export const HeroTrackEnquiry: React.FC = () => {
       phone: form.phone.trim(),
       email: enquiry.email.trim(),
       company: form.company.trim(),
-      service: form.service,
+      service: servicesText,
       message: form.message.trim() || undefined,
     });
     setSubmitting(false);
@@ -380,6 +411,8 @@ export const HeroTrackEnquiry: React.FC = () => {
                 onClick={() => {
                   setSubmitted(null);
                   setForm(EMPTY_FORM);
+                  setSelectedServices([]);
+                  setStage('services');
                 }}
                 className="font-bold text-[#FF4D16] hover:underline"
               >
@@ -387,82 +420,257 @@ export const HeroTrackEnquiry: React.FC = () => {
               </button>
             </div>
           </div>
-        ) : (
-          /* ======================= LIVE FORM ======================= */
-          <form onSubmit={submitRequest} noValidate className="space-y-3">
-            <div className="space-y-0.5">
-              <h3 className="font-hero text-xl xl:text-[22px] font-extrabold tracking-tight text-[#171717]">
-                Get it done, live with ChaseHorse
-              </h3>
-              <p className="text-[13px] text-[#625E58]">Raise a service request, book logistics, or get immediate support.</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {field('name', 'Full name *', { autoComplete: 'name' })}
-              {field('phone', 'Mobile number *', { type: 'tel', autoComplete: 'tel', inputMode: 'tel' })}
-              {field('company', 'Company name *', { autoComplete: 'organization' }, 'sm:col-span-2')}
-              <div className="sm:col-span-2 text-xs">
-                <VerifiedEmailField {...enquiry.emailField} id="live-email" label="Email address *" />
+        ) : stage === 'services' ? (
+          /* ======================= STAGE 1: SERVICES SELECTION BLOCK ======================= */
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="services-stage"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-3.5"
+            >
+              <div className="space-y-0.5">
+                <h3 className="font-hero text-xl xl:text-[22px] font-extrabold tracking-tight text-[#171717]">
+                  Get it done, live with ChaseHorse
+                </h3>
+                <p className="text-[13px] text-[#625E58]">
+                  Select the services you need to book logistics or request instant support.
+                </p>
               </div>
-            </div>
 
-            <fieldset>
-              <legend className="mb-1.5 text-xs font-bold text-[#171717]">
-                Select a service <span className="text-[#FF4D16]">*</span>
-              </legend>
-              {/* Compact pills: all five services fit in two short rows */}
-              <div
-                id="live-service"
-                role="radiogroup"
-                tabIndex={-1}
-                aria-invalid={!!errors.service}
-                className="flex flex-wrap gap-1.5 outline-none"
-              >
-                {LIVE_SERVICES.map(({ id, label, icon: Icon }) => {
-                  const active = form.service === label;
+              {/* 
+                Shape Layout:
+                Row 1: S1 (Truck Booking & Freight) | S2 (Warehouse & Field Operations)
+                Row 2: S3 (Returns & Reverse Logistics) | S4 (Fleet & Driver Management)
+                Row 3: S5 (Digital Transformation & Automation) - full width
+              */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                {LIVE_SERVICES.slice(0, 4).map((service) => {
+                  const selected = selectedServices.includes(service.label);
+                  const Icon = service.icon;
                   return (
                     <button
-                      key={id}
+                      key={service.id}
                       type="button"
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => set('service', label)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[12px] font-semibold leading-none transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF4D16] ${
-                        active
-                          ? 'border-[#FF4D16] bg-[#FFF0EB] text-[#171717]'
-                          : `bg-white text-[#3D3A35] hover:border-[#171717]/40 hover:bg-[#FAF8F5] ${errors.service ? 'border-red-300' : 'border-[#E2DED5]'}`
+                      role="checkbox"
+                      aria-checked={selected}
+                      onClick={() => toggleService(service.label)}
+                      className={`group relative p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between min-h-[96px] sm:min-h-[104px] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF4D16] ${
+                        selected
+                          ? 'border-[#FF4D16] bg-[#FFF0EB]/85 ring-2 ring-[#FF4D16]/20 shadow-sm'
+                          : 'border-[#E2DED5] bg-white hover:border-[#FF4D16]/40 hover:bg-[#FAF8F5]'
                       }`}
                     >
-                      {active
-                        ? <CheckCircle2 className="w-3.5 h-3.5 text-[#FF4D16]" />
-                        : <Icon className="w-3.5 h-3.5 text-[#8C877D]" />}
-                      {label}
+                      <div className="flex items-center justify-between w-full">
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                            selected
+                              ? 'bg-[#FF4D16] text-white shadow-sm shadow-[#FF4D16]/30'
+                              : 'bg-[#F4F1EA] text-[#625E58] group-hover:text-[#171717]'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                            selected
+                              ? 'bg-[#FF4D16] border-[#FF4D16] text-white shadow-sm'
+                              : 'border-[#D5CEBE] bg-white group-hover:border-[#A8A29A]'
+                          }`}
+                        >
+                          {selected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                      </div>
+                      <span className="text-xs sm:text-[13px] font-bold text-[#171717] leading-snug mt-2 line-clamp-2">
+                        {service.label}
+                      </span>
                     </button>
                   );
                 })}
+
+                {/* S5: Spans both columns */}
+                {(() => {
+                  const s5 = LIVE_SERVICES[4];
+                  const selected5 = selectedServices.includes(s5.label);
+                  const Icon = s5.icon;
+                  return (
+                    <button
+                      key={s5.id}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={selected5}
+                      onClick={() => toggleService(s5.label)}
+                      className={`group relative col-span-2 p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF4D16] ${
+                        selected5
+                          ? 'border-[#FF4D16] bg-[#FFF0EB]/85 ring-2 ring-[#FF4D16]/20 shadow-sm'
+                          : 'border-[#E2DED5] bg-white hover:border-[#FF4D16]/40 hover:bg-[#FAF8F5]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            selected5
+                              ? 'bg-[#FF4D16] text-white shadow-sm shadow-[#FF4D16]/30'
+                              : 'bg-[#F4F1EA] text-[#625E58] group-hover:text-[#171717]'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs sm:text-[13px] font-bold text-[#171717] leading-snug truncate">
+                          {s5.label}
+                        </span>
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-all ${
+                          selected5
+                            ? 'bg-[#FF4D16] border-[#FF4D16] text-white shadow-sm'
+                            : 'border-[#D5CEBE] bg-white group-hover:border-[#A8A29A]'
+                        }`}
+                      >
+                        {selected5 && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                    </button>
+                  );
+                })()}
               </div>
-              {errors.service && <p className="mt-1 text-[11px] font-semibold text-red-600">{errors.service}</p>}
-            </fieldset>
 
-            <textarea
-              value={form.message}
-              onChange={(e) => set('message', e.target.value)}
-              placeholder="Describe your requirement (optional)"
-              aria-label="Requirement description"
-              rows={2}
-              className={`${inputCls} resize-none`}
-            />
+              {/* Status info & validation */}
+              {serviceError ? (
+                <p className="text-[11px] font-semibold text-red-600 text-center animate-shake">
+                  {serviceError}
+                </p>
+              ) : selectedServices.length > 0 ? (
+                <div className="flex items-center justify-center gap-1.5 text-xs text-[#625E58]">
+                  <span className="font-bold text-[#FF4D16]">{selectedServices.length}</span>
+                  <span>{selectedServices.length === 1 ? 'service' : 'services'} selected &bull; click to modify</span>
+                </div>
+              ) : (
+                <p className="text-xs text-[#8C877D] text-center">
+                  Select one or multiple services to proceed.
+                </p>
+              )}
 
-            <EnquiryError message={enquiry.error} />
-            <button
-              type="submit"
-              disabled={submitting || !enquiry.token}
-              className="w-full py-3.5 rounded-xl bg-[#FF4D16] hover:bg-[#E53E0B] disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#FF4D16]/25 transition-colors"
+              {/* Get it done CTA button */}
+              <button
+                type="button"
+                onClick={handleGetItDone}
+                className="w-full py-3.5 rounded-xl bg-[#FF4D16] hover:bg-[#E53E0B] text-white font-hero font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-[#FF4D16]/25 hover:shadow-[#FF4D16]/35 active:scale-[0.99] transition-all group"
+              >
+                <span>Get it done</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </motion.div>
+          </AnimatePresence>
+        ) : (
+          /* ======================= STAGE 2: LIVE FORM ======================= */
+          <AnimatePresence mode="wait">
+            <motion.form
+              key="form-stage"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              onSubmit={submitRequest}
+              noValidate
+              className="space-y-3"
             >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {enquiry.token ? 'Submit Request' : 'Verify your e-mail to submit'}
-            </button>
-          </form>
+              {/* Back to services navigation */}
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setStage('services')}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#625E58] hover:text-[#FF4D16] transition-colors group"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+                  <span>Back to services</span>
+                </button>
+                <span className="text-[11px] font-semibold text-[#8C877D]">
+                  Step 2 of 2
+                </span>
+              </div>
+
+              <div className="space-y-0.5">
+                <h3 className="font-hero text-xl xl:text-[22px] font-extrabold tracking-tight text-[#171717]">
+                  Get it done, live with ChaseHorse
+                </h3>
+                <p className="text-[13px] text-[#625E58]">Raise a service request, book logistics, or get immediate support.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {field('name', 'Full name *', { autoComplete: 'name' })}
+                {field('phone', 'Mobile number *', { type: 'tel', autoComplete: 'tel', inputMode: 'tel' })}
+                {field('company', 'Company name *', { autoComplete: 'organization' }, 'sm:col-span-2')}
+                <div className="sm:col-span-2 text-xs">
+                  <VerifiedEmailField {...enquiry.emailField} id="live-email" label="Email address *" />
+                </div>
+              </div>
+
+              {/* Multi-service selection: pre-selected and modifiable */}
+              <fieldset>
+                <div className="flex items-center justify-between mb-1.5">
+                  <legend className="text-xs font-bold text-[#171717]">
+                    Selected services <span className="text-[#FF4D16]">*</span>
+                  </legend>
+                  <span className="text-[11px] font-medium text-[#8C877D]">
+                    {selectedServices.length > 0 ? `${selectedServices.length} selected` : 'Select at least one'}
+                  </span>
+                </div>
+                <div
+                  id="live-service"
+                  tabIndex={-1}
+                  aria-invalid={!!errors.service}
+                  className="flex flex-wrap gap-1.5 outline-none"
+                >
+                  {LIVE_SERVICES.map(({ id, label, icon: Icon }) => {
+                    const active = selectedServices.includes(label);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        role="checkbox"
+                        aria-checked={active}
+                        onClick={() => toggleService(label)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[12px] font-semibold leading-none transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF4D16] ${
+                          active
+                            ? 'border-[#FF4D16] bg-[#FFF0EB] text-[#171717] ring-1 ring-[#FF4D16]'
+                            : `bg-white text-[#3D3A35] hover:border-[#171717]/40 hover:bg-[#FAF8F5] ${errors.service ? 'border-red-300' : 'border-[#E2DED5]'}`
+                        }`}
+                      >
+                        {active ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#FF4D16]" />
+                        ) : (
+                          <Icon className="w-3.5 h-3.5 text-[#8C877D]" />
+                        )}
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.service && <p className="mt-1 text-[11px] font-semibold text-red-600">{errors.service}</p>}
+              </fieldset>
+
+              <textarea
+                value={form.message}
+                onChange={(e) => set('message', e.target.value)}
+                placeholder="Describe your requirement (optional)"
+                aria-label="Requirement description"
+                rows={2}
+                className={`${inputCls} resize-none`}
+              />
+
+              <EnquiryError message={enquiry.error} />
+              <button
+                type="submit"
+                disabled={submitting || !enquiry.token}
+                className="w-full py-3.5 rounded-xl bg-[#FF4D16] hover:bg-[#E53E0B] disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#FF4D16]/25 transition-colors"
+              >
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {enquiry.token ? 'Book Now to Submit' : 'Verify your e-mail to submit'}
+              </button>
+            </motion.form>
+          </AnimatePresence>
         )}
       </div>
     </div>

@@ -9,7 +9,8 @@ import {
   ShieldCheck, 
   Warehouse, 
   MapPin,
-  Truck
+  Truck,
+  PhoneCall
 } from 'lucide-react';
 import { EnquiryModal } from '../../components/ui/EnquiryModal';
 
@@ -63,15 +64,23 @@ export const HseShopPage: React.FC = () => {
                 Certified Personal Protective Equipment (PPE), heavy-duty lashing gear, and ergonomic worker apparel engineered for Indian warehouse docks and freight corridors.
               </p>
 
-              {/* Two Mandated Action Buttons in Prominent Header */}
+              {/* Action Buttons in Prominent Header */}
               <div className="pt-4 flex flex-wrap gap-3">
-                <button
-                  onClick={() => setStoreRequestOpen(true)}
+                <Link
+                  to="/hse-shop/request-onsite-store"
                   className="px-6 py-3.5 bg-[#FF4D16] text-white font-bold rounded-xl hover:bg-[#E53E0B] transition-colors text-sm flex items-center space-x-2 shadow-lg"
                 >
                   <Warehouse className="w-4 h-4" />
-                  <span>Request On-Site Managed Store</span>
-                </button>
+                  <span>Request On-Site Store</span>
+                </Link>
+
+                <Link
+                  to="/hse-shop/request-callback"
+                  className="px-5 py-3.5 bg-white/10 hover:bg-white text-white hover:text-[#171717] border border-white/20 font-bold rounded-xl transition-all text-sm flex items-center space-x-2"
+                >
+                  <PhoneCall className="w-4 h-4 text-[#FF4D16]" />
+                  <span>Request a Callback</span>
+                </Link>
 
                 <Link
                   to="/locations#hse-stores"

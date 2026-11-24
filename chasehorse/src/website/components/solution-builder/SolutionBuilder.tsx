@@ -5,7 +5,6 @@ import { TierId, Service } from './types';
 import { tiers, services } from './servicesData';
 import { useTheme } from './useTheme';
 import { useServiceHover } from './useServiceHover';
-import { ThemeSwitcher } from './ThemeSwitcher';
 import { TierColumn } from './TierColumn';
 import { SummaryPanel } from './SummaryPanel';
 import { BlueprintRequestModal } from './BlueprintRequestModal';
@@ -37,7 +36,7 @@ const tierTotals: Record<string, number> = Object.fromEntries(
 );
 
 export const SolutionBuilder: React.FC<SolutionBuilderProps> = ({ initialSelectedIds = [] }) => {
-  const { theme, setTheme, themesList } = useTheme();
+  const { theme } = useTheme();
 
   // Selection stored strictly as Set<string>
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialSelectedIds));
@@ -145,10 +144,6 @@ export const SolutionBuilder: React.FC<SolutionBuilderProps> = ({ initialSelecte
                 they collect in your blueprint, and our team turns it into a plan for your operations.
               </p>
             </div>
-
-            <div className="shrink-0">
-              <ThemeSwitcher currentTheme={theme} onThemeChange={setTheme} themes={themesList} />
-            </div>
           </div>
 
           {/* Stats + steps strip */}
@@ -232,6 +227,7 @@ export const SolutionBuilder: React.FC<SolutionBuilderProps> = ({ initialSelecte
           getFloatingProps={getFloatingProps}
           onClose={closeHover}
           onToggleSelect={handleToggleService}
+          theme={theme}
         />
 
         <BlueprintRequestModal

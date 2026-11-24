@@ -22,9 +22,9 @@ const LIVE_MARKET_CARDS = [
   },
   {
     path: '/live-market/terminal-space',
-    title: 'Book Truck Terminal Space',
+    title: 'Infrapartner — Truck Terminal Space',
     icon: Warehouse,
-    badge: '6 Metro Hubs',
+    badge: 'Infrapartner · 6 Metro Hubs',
     desc: 'Reserve secure parking bays, driver amenities, reefer plug-ins, and cross-docking berths at certified logistics yards.',
     action: 'Reserve Bays',
   },

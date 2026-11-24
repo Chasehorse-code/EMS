@@ -1,10 +1,9 @@
 /**
  * Navbar dropdowns, laid out like Tesla's menu: a row (or grid) of text tiles on the left —
- * name, ~2-line description, "Learn more" — and a plain column of secondary text links
- * on the right for the pages folded inside a section.
+ * name, ~2-line description, "Learn more".
  *
- * Only the menu is trimmed here — every page still exists, and sub-page sidebars keep listing the
- * full set of pages from `MAIN_NAVIGATION[].megaMenu.sections` (data/navigation.ts).
+ * Secondary and folded-in links are prominently hosted on their dedicated pages
+ * (e.g. /live-market, /careers, /hse-shop, /partners) for maximum visibility.
  */
 
 export interface NavCardLink {
@@ -25,12 +24,19 @@ export interface NavSideGroup {
   links: NavCardLink[];
 }
 
-export interface NavDropdown {
-  cards: NavCard[];
-  /** The plain text-link column on the right (Tesla-style). */
-  side?: NavSideGroup[];
+export interface NavDropdownAction {
+  title: string;
+  path: string;
+  variant?: 'primary' | 'secondary' | 'whatsapp';
 }
 
+export interface NavDropdown {
+  cards: NavCard[];
+  /** Optional plain text-link column on the right. */
+  side?: NavSideGroup[];
+  /** Optional quick actions shown below the card grid. */
+  footerActions?: NavDropdownAction[];
+}
 
 export const NAV_DROPDOWNS: Record<string, NavDropdown> = {
   platform: {
@@ -86,15 +92,6 @@ export const NAV_DROPDOWNS: Record<string, NavDropdown> = {
         path: '/live-market/freight-index',
       },
     ],
-    side: [
-      {
-        links: [
-          { title: 'Infrapartner — truck terminal space', path: '/live-market/terminal-space' },
-          { title: 'Secure Trip Finance', path: '/live-market/trip-finance' },
-          { title: 'All Live Market services', path: '/live-market' },
-        ],
-      },
-    ],
   },
 
   discover: {
@@ -130,17 +127,6 @@ export const NAV_DROPDOWNS: Record<string, NavDropdown> = {
         path: '/careers',
       },
     ],
-    side: [
-      {
-        title: 'Careers',
-        links: [
-          { title: 'Jobs on Platform', path: '/careers/jobs' },
-          { title: 'Internships', path: '/discover/internships' },
-          { title: 'Culture & Benefits', path: '/careers/culture' },
-          { title: 'Graduate Trainee Program', path: '/careers/graduates' },
-        ],
-      },
-    ],
   },
 
   'hse-shop': {
@@ -156,17 +142,8 @@ export const NAV_DROPDOWNS: Record<string, NavDropdown> = {
         path: '/hse-shop/offline-stores',
       },
     ],
-    side: [
-      {
-        links: [
-          { title: 'Request on-site store', path: '/hse-shop/request-onsite-store' },
-          { title: 'Request a callback', path: '/hse-shop/request-callback' },
-        ],
-      },
-    ],
   },
 
-  // Reference layout: "Join us" tiles, with the roles each partner type covers in the side column.
   partners: {
     cards: [
       {
@@ -184,19 +161,23 @@ export const NAV_DROPDOWNS: Record<string, NavDropdown> = {
         description: 'Join us — list your yard, warehouse bay or secure truck parking.',
         path: '/partners/terminal-space',
       },
-    ],
-    side: [
       {
-        title: 'Transportation',
-        links: [
-          { title: 'Transporters', path: '/partners/transportation' },
-          { title: 'Fleet owners', path: '/partners/transportation' },
-          { title: 'Drivers', path: '/partners/transportation' },
-          { title: 'Freight traders', path: '/partners/transportation' },
-          { title: 'Freight financials', path: '/partners/transportation' },
-        ],
+        title: 'Partner Application Form',
+        description: 'Complete our fast-track onboarding form to register your fleet or capabilities.',
+        path: '/partners/apply',
       },
-      { links: [{ title: 'Partner application form', path: '/partners/apply' }] },
+    ],
+    footerActions: [
+      {
+        title: 'Join Partner WhatsApp Desk',
+        path: 'https://wa.me/917337369111?text=Hi%20Chasehorse%2C%20I%20want%20to%20join%20the%20Partner%20Network',
+        variant: 'whatsapp',
+      },
+      {
+        title: 'Contact Us',
+        path: '/contact',
+        variant: 'secondary',
+      },
     ],
   },
 };

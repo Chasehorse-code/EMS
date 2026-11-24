@@ -4,7 +4,6 @@ import {
   offset,
   flip,
   shift,
-  arrow,
   autoUpdate,
   useHover,
   useFocus,
@@ -30,13 +29,12 @@ export function useServiceHover() {
     },
     placement: 'right' as Placement,
     middleware: [
-      offset(12),
+      offset(10),
       flip({
         fallbackAxisSideDirection: 'start',
         padding: 8,
       }),
       shift({ padding: 8 }),
-      arrow({ element: arrowRef }),
     ],
     whileElementsMounted: autoUpdate,
   });

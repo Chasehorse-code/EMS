@@ -1,7 +1,7 @@
 import React from 'react';
 import { FloatingPortal } from '@floating-ui/react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { X, CheckCircle2, PlusCircle } from 'lucide-react';
+import { CheckCircle2, PlusCircle } from 'lucide-react';
 import { Service } from './types';
 
 interface ServiceHoverCardProps {
@@ -10,17 +10,18 @@ interface ServiceHoverCardProps {
   isSelected: boolean;
   floatingRef: (node: HTMLElement | null) => void;
   floatingStyles: React.CSSProperties;
-  placement: string;
-  middlewareData: {
+  placement?: string;
+  middlewareData?: {
     arrow?: {
       x?: number;
       y?: number;
     };
   };
-  arrowRef: React.RefObject<HTMLDivElement>;
+  arrowRef?: React.RefObject<HTMLDivElement>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
   onClose: () => void;
   onToggleSelect: (serviceId: string) => void;
+  theme?: string;
 }
 
 export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
@@ -29,12 +30,10 @@ export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
   isSelected,
   floatingRef,
   floatingStyles,
-  placement,
-  middlewareData,
-  arrowRef,
+  placement = 'right',
   getFloatingProps,
-  onClose,
   onToggleSelect,
+  theme = 'classic',
 }) => {
   const shouldReduceMotion = useReducedMotion();
 
@@ -49,25 +48,17 @@ export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
   };
   const transformOrigin = transformOriginMap[basePlacement] || 'center center';
 
-  const arrowX = middlewareData.arrow?.x;
-  const arrowY = middlewareData.arrow?.y;
-
-  const staticSideMap: Record<string, string> = {
-    top: 'bottom',
-    right: 'left',
-    bottom: 'top',
-    left: 'right',
-  };
-  const staticSide = staticSideMap[basePlacement];
-
   return (
     <FloatingPortal>
       <div
         ref={floatingRef}
+        data-theme={theme}
+        className="ch-site sb-scope"
         style={{
           ...floatingStyles,
           zIndex: 9999,
           pointerEvents: 'auto',
+          boxSizing: 'border-box',
         }}
         {...getFloatingProps()}
       >
@@ -78,7 +69,7 @@ export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
           initial={
             shouldReduceMotion
               ? { opacity: 0 }
-              : { opacity: 0, scale: 0.94 }
+              : { opacity: 0, scale: 0.96 }
           }
           animate={
             shouldReduceMotion
@@ -88,66 +79,37 @@ export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
           exit={
             shouldReduceMotion
               ? { opacity: 0 }
-              : { opacity: 0, scale: 0.94 }
+              : { opacity: 0, scale: 0.96 }
           }
           transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
           style={{
             transformOrigin,
-            background: 'var(--tip-bg)',
-            borderColor: 'var(--line)',
-            color: 'var(--ink)',
-            boxShadow: 'var(--shadow-card)',
+            backgroundColor: '#ffffff',
+            borderColor: '#eae6dd',
+            color: '#171717',
+            borderRadius: '28px',
+            overflow: 'hidden',
+            boxShadow: '0 20px 48px -10px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.05)',
+            boxSizing: 'border-box',
           }}
-          className="relative w-[300px] sm:w-[320px] rounded-2xl border p-4 shadow-2xl backdrop-blur-md"
+          className="relative w-[320px] sm:w-[350px] rounded-[28px] border border-[#eae6dd] px-6 py-5 bg-white overflow-hidden"
         >
-          {/* Arrow */}
-          <div
-            ref={arrowRef}
-            style={{
-              position: 'absolute',
-              left: arrowX != null ? `${arrowX}px` : '',
-              top: arrowY != null ? `${arrowY}px` : '',
-              [staticSide]: '-6px',
-              width: '12px',
-              height: '12px',
-              transform: 'rotate(45deg)',
-              background: 'var(--tip-bg)',
-              borderColor: 'var(--line)',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              ...(basePlacement === 'right' && { borderRight: 'none', borderTop: 'none' }),
-              ...(basePlacement === 'left' && { borderLeft: 'none', borderBottom: 'none' }),
-              ...(basePlacement === 'top' && { borderTop: 'none', borderLeft: 'none' }),
-              ...(basePlacement === 'bottom' && { borderBottom: 'none', borderRight: 'none' }),
-            }}
-          />
-
-          {/* Close button for touch devices */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close details"
-            className="absolute top-3 right-3 p-1 rounded-full text-xs transition-colors hover:bg-black/10 focus-visible:ring-2 sm:hidden"
-            style={{ color: 'var(--mut)' }}
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-
           {/* Header Tag: TIER · GROUP */}
-          <div className="flex items-center space-x-1.5 mb-2 pr-6 sm:pr-0">
+          <div className="flex items-center gap-2">
             <span
-              className="text-[10px] font-mono font-bold tracking-widest uppercase px-1.5 py-0.5 rounded"
+              className="text-[11px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-[5px]"
               style={{
-                background: 'var(--soft)',
-                color: 'var(--acc)',
+                backgroundColor: '#fff0eb',
+                color: '#ff4d16',
+                display: 'inline-block',
+                lineHeight: '1.4',
               }}
             >
               {service.tier}
             </span>
-            <span className="text-[10px] font-mono text-gray-400">•</span>
+            <span className="text-[10px] font-mono text-[#A8A29A]">•</span>
             <span
-              className="text-[10px] font-mono font-bold uppercase tracking-wider truncate"
-              style={{ color: 'var(--mut)' }}
+              className="text-[11px] font-mono font-bold tracking-[0.14em] uppercase truncate text-[#71717a]"
             >
               {service.group}
             </span>
@@ -155,47 +117,61 @@ export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
 
           {/* Service Name */}
           <h4
-            className="text-sm sm:text-base font-extrabold tracking-tight leading-snug mb-2"
-            style={{ color: 'var(--ink)' }}
+            className="text-[20px] font-bold text-[#171717] tracking-tight leading-tight mt-3 mb-2"
           >
             {service.name}
           </h4>
 
-
-          {/* One-line Description */}
+          {/* Description */}
           <p
-            className="text-xs leading-relaxed mb-3.5"
-            style={{ color: 'var(--mut)' }}
+            className="text-[13.5px] text-[#52525b] leading-[1.65] mb-5 font-normal"
           >
             {service.description}
           </p>
 
-          {/* Footer Interactive Hint */}
+          {/* Footer Interactive Row */}
           <button
             type="button"
-            onClick={() => onToggleSelect(service.id)}
-            className="w-full pt-2.5 border-t flex items-center justify-between text-xs font-semibold transition-colors outline-none focus-visible:ring-2 rounded-b cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleSelect(service.id);
+            }}
+            className="w-full pt-3.5 flex items-center justify-between outline-none cursor-pointer group"
             style={{
-              borderColor: 'var(--line)',
-              color: isSelected ? 'var(--acc)' : 'var(--ink)',
+              borderTop: '1px solid #eae6dd',
+              borderLeft: 'none',
+              borderRight: 'none',
+              borderBottom: 'none',
+              backgroundColor: 'transparent',
+              paddingLeft: 0,
+              paddingRight: 0,
+              paddingBottom: 0,
+              margin: 0,
+              appearance: 'none',
+              WebkitAppearance: 'none',
             }}
           >
-            <span className="flex items-center space-x-1.5">
+            <span className="flex items-center gap-2">
               {isSelected ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="font-bold text-emerald-600">✓ Added to solution</span>
+                  <CheckCircle2 className="w-[18px] h-[18px] text-emerald-600 shrink-0" />
+                  <span className="font-bold text-[13.5px] text-emerald-600">✓ Added to solution</span>
                 </>
               ) : (
                 <>
-                  <PlusCircle className="w-4 h-4" style={{ color: 'var(--acc)' }} />
-                  <span>Click row to add</span>
+                  <PlusCircle
+                    className="w-[18px] h-[18px] text-[#ff4d16] shrink-0 transition-transform group-hover:scale-110"
+                    strokeWidth={2}
+                  />
+                  <span className="font-bold text-[13.5px] text-[#171717] group-hover:text-[#ff4d16] transition-colors">
+                    Click row to add
+                  </span>
                 </>
               )}
             </span>
             <span
-              className="text-[10px] font-mono tracking-wider uppercase underline underline-offset-2"
-              style={{ color: 'var(--mut)' }}
+              className="text-[11px] font-mono font-bold tracking-[0.16em] uppercase underline underline-offset-4 decoration-[#a8a29a] text-[#71717a] group-hover:decoration-[#171717] transition-all"
             >
               {isSelected ? 'Remove' : 'Select'}
             </span>
@@ -205,4 +181,3 @@ export const ServiceHoverCard: React.FC<ServiceHoverCardProps> = ({
     </FloatingPortal>
   );
 };
-

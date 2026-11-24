@@ -5,7 +5,12 @@ import {
   Truck, 
   Warehouse, 
   MessageSquare, 
-  ArrowRight} from 'lucide-react';
+  ArrowRight,
+  ShieldCheck,
+  FileText,
+  PhoneCall,
+  Coins
+} from 'lucide-react';
 import { EnquiryModal } from '../../components/ui/EnquiryModal';
 
 export const PartnersPage: React.FC = () => {
@@ -47,11 +52,19 @@ export const PartnersPage: React.FC = () => {
                 href="https://wa.me/917337369111?text=Hi%20Chasehorse%2C%20I%20want%20to%20join%20the%20Partner%20Network"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-5 py-3.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#1EBE5D] transition-colors text-sm flex items-center space-x-2"
+                className="px-5 py-3.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#1EBE5D] transition-colors text-sm flex items-center space-x-2 shadow-sm"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Join Partner WhatsApp Desk</span>
               </a>
+
+              <Link
+                to="/contact"
+                className="px-5 py-3.5 bg-white/10 hover:bg-white text-white hover:text-[#171717] border border-white/20 font-bold rounded-xl transition-all text-sm flex items-center space-x-2"
+              >
+                <span>Contact Us</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </div>
@@ -61,6 +74,48 @@ export const PartnersPage: React.FC = () => {
         <TransportPartnerSection onEnquire={openModal} />
 
         <TerminalPartnerSection onEnquire={openModal} />
+
+        {/* 24/7 Partner Support & Enquiries */}
+        <div className="bg-[#171717] rounded-3xl text-white p-8 sm:p-12 relative overflow-hidden border border-white/10 shadow-xl">
+          <div className="max-w-3xl space-y-4">
+            <span className="text-xs font-mono uppercase tracking-widest text-[#FF4D16] font-bold">
+              ● 24/7 PARTNER SUPPORT & ENQUIRIES
+            </span>
+            <h3 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+              Have questions or want to partner with us?
+            </h3>
+            <p className="text-sm sm:text-base text-[#E2DED5]/90 leading-relaxed font-light">
+              Reach out directly to our partner network operations leads via WhatsApp, submit an onboarding application, or get in touch through our contact form.
+            </p>
+            <div className="pt-3 flex flex-wrap gap-3">
+              <a
+                href="https://wa.me/917337369111?text=Hi%20Chasehorse%2C%20I%20want%20to%20join%20the%20Partner%20Network"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#1EBE5D] transition-colors text-sm flex items-center space-x-2 shadow-lg"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Join Partner WhatsApp Desk</span>
+              </a>
+
+              <Link
+                to="/contact"
+                className="px-6 py-3.5 bg-white text-[#171717] hover:bg-[#FAF8F5] font-bold rounded-xl transition-all text-sm flex items-center space-x-2 shadow-sm"
+              >
+                <PhoneCall className="w-4 h-4 text-[#FF4D16]" />
+                <span>Contact Us</span>
+              </Link>
+
+              <Link
+                to="/partners/apply"
+                className="px-6 py-3.5 bg-white/10 hover:bg-white text-white hover:text-[#171717] border border-white/20 font-bold rounded-xl transition-all text-sm flex items-center space-x-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Complete Onboarding Form</span>
+              </Link>
+            </div>
+          </div>
+        </div>
 
       </div>
 
@@ -127,42 +182,83 @@ export const OnFieldPartnerSection: React.FC<{ onEnquire: (title: string) => voi
 /** Partners › Transportation Professionals */
 export const TransportPartnerSection: React.FC<{ onEnquire: (title: string) => void }> = ({ onEnquire }) => (
     <div id="transportation" className="bg-white rounded-3xl border border-[#E2DED5] p-8 sm:p-12 shadow-sm space-y-8 scroll-mt-24">
-      <div className="space-y-3 max-w-2xl">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#FAF8F5] text-[#171717] text-xs font-bold border border-[#E2DED5]">
-          <Truck className="w-3.5 h-3.5 text-[#FF4D16]" />
-          <span>CATEGORY 2: CARRIER ECOSYSTEM</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-3 max-w-2xl">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#FAF8F5] text-[#171717] text-xs font-bold border border-[#E2DED5]">
+            <Truck className="w-3.5 h-3.5 text-[#FF4D16]" />
+            <span>CATEGORY 2: CARRIER ECOSYSTEM</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#171717]">
+            Transportation Professionals
+          </h2>
+          <p className="text-sm text-[#625E58] leading-relaxed">
+            We partner across the complete freight value chain. Whether you operate single-truck runs, manage large fleets, or offer freight financing, Chasehorse gives you transparent loads and fast cashflow.
+          </p>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#171717]">
-          Transportation Professionals
-        </h2>
-        <p className="text-sm text-[#625E58] leading-relaxed">
-          We partner across the complete freight value chain. Whether you own 2 trucks or 200, or provide freight financial services, Chasehorse gives you transparent loads and fast cashflow.
-        </p>
+
+        <Link
+          to="/partners/apply?type=transportation"
+          className="px-5 py-3 bg-[#FF4D16] hover:bg-[#E53E0B] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-2 self-start shadow-sm transition-colors whitespace-nowrap"
+        >
+          <span>Partner Application Form</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E2DED5] space-y-2">
-          <h4 className="font-bold text-base text-[#171717]">Transporters & Fleet Owners</h4>
+          <div className="flex items-center gap-2">
+            <Truck className="w-4 h-4 text-[#FF4D16]" />
+            <h4 className="font-bold text-base text-[#171717]">Transporters</h4>
+          </div>
           <p className="text-xs text-[#625E58]">Access daily FTL spot and annual contract loads across all major industrial lanes with zero broker deduction.</p>
         </div>
 
         <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E2DED5] space-y-2">
-          <h4 className="font-bold text-base text-[#171717]">Professional Drivers</h4>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-[#FF4D16]" />
+            <h4 className="font-bold text-base text-[#171717]">Fleet Owners</h4>
+          </div>
+          <p className="text-xs text-[#625E58]">Scale your asset utilization with guaranteed return-load commitments, verified shippers, and fast settlements.</p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E2DED5] space-y-2">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#FF4D16]" />
+            <h4 className="font-bold text-base text-[#171717]">Drivers</h4>
+          </div>
           <p className="text-xs text-[#625E58]">Dignified working conditions, terminal rest lounges, free medical checks, and performance safety bonuses.</p>
         </div>
 
         <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E2DED5] space-y-2">
-          <h4 className="font-bold text-base text-[#171717]">Freight Traders & Financials</h4>
-          <p className="text-xs text-[#625E58]">Participate in verified trip invoice discounting programs with institutional risk underwriting.</p>
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#FF4D16]" />
+            <h4 className="font-bold text-base text-[#171717]">Freight Traders</h4>
+          </div>
+          <p className="text-xs text-[#625E58]">Collaborate on verified load placements, regional routing, and transparent real-time benchmark pricing.</p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E2DED5] space-y-2">
+          <div className="flex items-center gap-2">
+            <Coins className="w-4 h-4 text-[#FF4D16]" />
+            <h4 className="font-bold text-base text-[#171717]">Freight Financials</h4>
+          </div>
+          <p className="text-xs text-[#625E58]">Participate in verified trip invoice discounting programs with institutional risk underwriting and fast liquidity.</p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E2DED5] flex flex-col justify-between space-y-3">
+          <div className="space-y-1">
+            <h4 className="font-bold text-base text-[#171717]">Ready to Partner?</h4>
+            <p className="text-xs text-[#625E58]">Submit your vehicle details, trade credentials, or register your fleet directly.</p>
+          </div>
+          <button
+            onClick={() => onEnquire('Register as Transportation Professional')}
+            className="w-full py-2.5 bg-[#171717] text-white rounded-xl text-xs font-bold hover:bg-[#FF4D16] transition-colors"
+          >
+            Register Fleet with Chasehorse →
+          </button>
         </div>
       </div>
-
-      <button
-        onClick={() => onEnquire('Register as Transportation Professional')}
-        className="px-6 py-3 bg-[#171717] text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-[#FF4D16] transition-colors"
-      >
-        Register Fleet with Chasehorse →
-      </button>
     </div>
 );
 
