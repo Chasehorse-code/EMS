@@ -3,7 +3,6 @@ import { ArrowRight } from 'lucide-react';
 import './themes.css';
 import { TierId, Service } from './types';
 import { tiers, services } from './servicesData';
-import { useTheme } from './useTheme';
 import { useServiceHover } from './useServiceHover';
 import { TierColumn } from './TierColumn';
 import { SummaryPanel } from './SummaryPanel';
@@ -36,7 +35,7 @@ const tierTotals: Record<string, number> = Object.fromEntries(
 );
 
 export const SolutionBuilder: React.FC<SolutionBuilderProps> = ({ initialSelectedIds = [] }) => {
-  const { theme } = useTheme();
+  const theme = 'classic';
 
   // Selection stored strictly as Set<string>
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialSelectedIds));
